@@ -7,8 +7,8 @@ import (
 )
 
 const (
-	ordersURL = "/api/orders"
-	orderURL  = "/api/orders/:id"
+	ordersURL = "/api/orders.proto"
+	orderURL  = "/api/orders.proto/:id"
 	usersURL  = "/api/users"
 	userURL   = "/api/users/:id"
 )

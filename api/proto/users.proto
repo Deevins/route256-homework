@@ -1,0 +1,78 @@
+syntax = "proto3";
+
+
+
+package user.v1;
+option go_package = "./;pb";
+
+service UserServiceV1 {
+  // Create new User
+  rpc CreateUser (CreateUserRequestV1) returns (CreateUserResponseV1) {}
+  // Get User list
+  rpc ListUser (ListUserRequestV1) returns (ListUserResponseV1) {}
+  //Get User by ID
+  rpc GetUser (GetUserRequestV1) returns (GetUserResponseV1) {}
+  //Update User email by ID
+  rpc UpdateEmail (UpdateEmailRequestV1) returns (UpdateEmailResponseV1) {}
+  // Remove User by ID
+  rpc DeleteUser (DeleteUserRequestV1) returns (DeleteUserResponseV1) {}
+}
+service UserServiceV2{}
+
+message User {
+  uint32 id = 1;
+  string username = 2;
+  string email = 3;
+}
+
+message CreateUserRequestV1 {
+  string username = 1;
+  string email = 2;
+}
+
+message CreateUserResponseV1 {
+  uint32 id = 1;
+}
+
+
+message ListUserRequestV1 {
+  message Pagination {
+    uint32 page = 1;
+    uint32 limit = 2;
+  }
+
+  Pagination pagination = 1;
+}
+
+message ListUserResponseV1 {
+  repeated User Users = 1;
+}
+
+
+message GetUserRequestV1 {
+  uint32 id = 1;
+}
+
+message GetUserResponseV1 {
+  User user = 1;
+}
+
+
+message UpdateEmailRequestV1 {
+  string id = 1;
+  string email = 2;
+}
+
+message UpdateEmailResponseV1 {
+  bool is_ok = 1;
+}
+
+
+message DeleteUserRequestV1 {
+  uint32 id = 1;
+}
+
+message DeleteUserResponseV1 {
+  bool is_ok = 1;
+}
+

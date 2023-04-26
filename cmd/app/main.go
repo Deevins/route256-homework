@@ -10,8 +10,11 @@ import (
 	postgresqlRepository "gitlab.ozon.dev/daker255/homework-8/internal/app/repository/postgresql"
 	"gitlab.ozon.dev/daker255/homework-8/internal/app/server"
 	service "gitlab.ozon.dev/daker255/homework-8/internal/app/services"
+	"gitlab.ozon.dev/daker255/homework-8/internal/pb"
 	database "gitlab.ozon.dev/daker255/homework-8/pkg/database/clients"
+	"google.golang.org/grpc"
 	"log"
+	"net"
 )
 
 func main() {
@@ -54,7 +57,7 @@ func main() {
 	spellCommand := cli_commands.NewSpellCommand()
 
 	cliHandler := NewCLIHandler()
-
+	//
 	cliHandler.Register("order", orderCommand)
 	cliHandler.Register("user", userCommand)
 	cliHandler.Register("spell", spellCommand)
@@ -62,11 +65,27 @@ func main() {
 	// init handlers for our end-points
 	coreHandler := handlers.NewRootHandler(ctx, coreService)
 
-	// start server
+	lsn, err := net.Listen("tcp", ":50051")
+	if err != nil {
+		log.Fatal(err)
+	}
+	grpcServer := grpc.NewServer()
+	pb.RegisterUserServiceV1Server(grpcServer, NewUserImplementation(db))
+	pb.RegisterOrderServiceV1Server(grpcServer, NewOrderImplementation(db))
+
+	go func() {
+		log.Printf("starting gRPC server on %s", lsn.Addr().String())
+		if err := grpcServer.Serve(lsn); err != nil {
+			log.Fatal(err)
+		}
+	}()
+
+	// start http server
 	srv := server.NewServer()
 	if err := srv.Run(httpServerPort, coreHandler.InitRoutes()); err != nil {
 		log.Fatalf("could not start server on port %s with err %s", httpServerPort, err)
 	}
+
 	//initialize endless loop to wait for commands
 	//for {
 	//	go cliHandler.CommandProcessing()

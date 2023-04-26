@@ -89,12 +89,12 @@ func TestRootHandler_createOrder(t *testing.T) {
 			handlers := NewRootHandler(ctx, services)
 
 			router := httprouter.New()
-			router.POST("/api/orders", handlers.createOrder)
+			router.POST("/api/orders.proto", handlers.createOrder)
 
 			w := httptest.NewRecorder()
 
 			req := httptest.NewRequest("POST",
-				"/api/orders",
+				"/api/orders.proto",
 				bytes.NewBufferString(testCase.inputBody))
 			req.Header.Set("userID", "1")
 			router.ServeHTTP(w, req)
@@ -197,11 +197,11 @@ func TestRootHandler_getAllOrders(t *testing.T) {
 
 			router := httprouter.New()
 
-			router.GET("/api/orders", handlers.getAllOrders)
+			router.GET("/api/orders.proto", handlers.getAllOrders)
 
 			w := httptest.NewRecorder()
 			req := httptest.NewRequest("GET",
-				"/api/orders", nil)
+				"/api/orders.proto", nil)
 
 			router.ServeHTTP(w, req)
 
@@ -277,14 +277,14 @@ func TestRootHandler_getOrderByID(t *testing.T) {
 			handlers := NewRootHandler(ctx, services)
 
 			router := httprouter.New()
-			router.GET("/api/orders/:id", handlers.getOrderByID)
+			router.GET("/api/orders.proto/:id", handlers.getOrderByID)
 
 			testCase.mockBehavior(orderService, testCase.orderID)
 
 			w := httptest.NewRecorder()
 
 			req := httptest.NewRequest("GET",
-				fmt.Sprintf("/api/orders/%d", testCase.orderID), nil)
+				fmt.Sprintf("/api/orders.proto/%d", testCase.orderID), nil)
 			req.Header.Set("userID", "1")
 			router.ServeHTTP(w, req)
 
@@ -353,12 +353,12 @@ func TestRootHandler_getOrderByID(t *testing.T) {
 //			//handlers := NewRootHandler(ctx, services)
 //
 //			router := httprouter.New()
-//			//router.DELETE("/api/orders/:id", handlers.deleteUser)
+//			//router.DELETE("/api/orders.proto/:id", handlers.deleteUser)
 //
 //			w := httptest.NewRecorder()
 //
 //			req := httptest.NewRequest("DELETE",
-//				fmt.Sprintf("/api/orders/%d", testCase.orderID), nil)
+//				fmt.Sprintf("/api/orders.proto/%d", testCase.orderID), nil)
 //
 //			router.ServeHTTP(w, req)
 //
