@@ -19,8 +19,8 @@ service UserServiceV1 {
 }
 service UserServiceV2{}
 
-message User {
-  uint32 id = 1;
+message UserDTO {
+  uint32 user_id = 1;
   string username = 2;
   string email = 3;
 }
@@ -31,35 +31,28 @@ message CreateUserRequestV1 {
 }
 
 message CreateUserResponseV1 {
-  uint32 id = 1;
+  uint32 user_id = 1;
 }
 
 
-message ListUserRequestV1 {
-  message Pagination {
-    uint32 page = 1;
-    uint32 limit = 2;
-  }
-
-  Pagination pagination = 1;
-}
+message ListUserRequestV1 {}
 
 message ListUserResponseV1 {
-  repeated User Users = 1;
+  repeated UserDTO Users = 1;
 }
 
 
 message GetUserRequestV1 {
-  uint32 id = 1;
+  uint32 user_id = 1;
 }
 
 message GetUserResponseV1 {
-  User user = 1;
+  UserDTO user = 1;
 }
 
 
 message UpdateEmailRequestV1 {
-  string id = 1;
+  uint32 user_id = 1;
   string email = 2;
 }
 
@@ -69,7 +62,7 @@ message UpdateEmailResponseV1 {
 
 
 message DeleteUserRequestV1 {
-  uint32 id = 1;
+  uint32 user_id = 1;
 }
 
 message DeleteUserResponseV1 {

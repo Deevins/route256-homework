@@ -69,9 +69,11 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	grpcServer := grpc.NewServer()
-	pb.RegisterUserServiceV1Server(grpcServer, NewUserImplementation(db))
-	pb.RegisterOrderServiceV1Server(grpcServer, NewOrderImplementation(db))
+
+	pb.RegisterUserServiceV1Server(grpcServer, NewUserImplementation(userService))
+	pb.RegisterOrderServiceV1Server(grpcServer, NewOrderImplementation(orderService))
 
 	go func() {
 		log.Printf("starting gRPC server on %s", lsn.Addr().String())

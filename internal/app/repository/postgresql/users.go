@@ -27,6 +27,7 @@ func (r *PostgresqlUserRepo) CreateUser(ctx context.Context, username models.Use
 		return models.UserID(0), ErrEmptyEmailOrUsername
 	}
 	err := r.db.ExecQueryRow(ctx, `INSERT INTO users(username,email) VALUES ($1, $2) RETURNING id`, username, email).Scan(&id)
+
 	return id, err
 }
 
