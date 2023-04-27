@@ -29,7 +29,6 @@ message Order {
 }
 
 message CreateOrderRequestV1 {
-  uint32 order_id = 1;
   uint32 user_id = 2;
   string product_name = 3;
   uint32 quantity = 4;

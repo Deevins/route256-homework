@@ -8,6 +8,7 @@ import (
 	"gitlab.ozon.dev/daker255/homework-8/internal/pb"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type UserImplementation struct {
@@ -108,26 +109,87 @@ func NewOrderImplementation(orderService *service.OrderService) *OrderImplementa
 }
 
 func (o *OrderImplementation) CreateOrder(ctx context.Context, req *pb.CreateOrderRequestV1) (*pb.CreateOrderResponseV1, error) {
-	//TODO implement me
-	panic("implement me")
+	userID := models.UserID(req.UserId)
+	productName := models.ProductName(req.GetProductName())
+	quantity := models.Quantity(req.GetQuantity())
+
+	orderID, err := o.orderService.CreateOrder(ctx, userID, productName, quantity)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, fmt.Sprintf("Internal Error: %s", err))
+	}
+
+	res := pb.CreateOrderResponseV1{OrderId: uint32(orderID)}
+
+	return &res, nil
 }
 
 func (o *OrderImplementation) ListOrder(ctx context.Context, req *pb.ListOrderRequestV1) (*pb.ListOrderResponseV1, error) {
-	//TODO implement me
-	panic("implement me")
+
+	orders, err := o.orderService.GetAll(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, fmt.Sprintf("Internal Error: %s", err))
+	}
+
+	result := make([]*pb.Order, 0, len(orders))
+
+	for _, m := range orders {
+		orderDate := m.OrderDate
+		timestamp := timestamppb.New(orderDate)
+		result = append(result, &pb.Order{
+			OrderId:     uint32(m.ID),
+			UserId:      uint32(m.UserID),
+			ProductName: string(m.ProductName),
+			Status:      string(m.Status),
+			Quantity:    uint32(m.Quantity),
+			OrderDate:   timestamp,
+		})
+	}
+	return &pb.ListOrderResponseV1{
+		Orders: result,
+	}, nil
 }
 
 func (o *OrderImplementation) GetOrder(ctx context.Context, req *pb.GetOrderRequestV1) (*pb.GetOrderResponseV1, error) {
-	//TODO implement me
-	panic("implement me")
+	id := models.OrderID(req.OrderId)
+
+	order, err := o.orderService.GetByID(ctx, id)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, fmt.Sprintf("Internal Error: %s", err))
+	}
+
+	orderDate := order.OrderDate
+	timestamp := timestamppb.New(orderDate)
+	result := &pb.Order{
+		OrderId:     uint32(order.ID),
+		UserId:      uint32(order.UserID),
+		ProductName: string(order.ProductName),
+		Status:      string(order.Status),
+		Quantity:    uint32(order.Quantity),
+		OrderDate:   timestamp,
+	}
+
+	return &pb.GetOrderResponseV1{Order: result}, nil
 }
 
 func (o *OrderImplementation) UpdateOrderStatus(ctx context.Context, req *pb.UpdateOrderStatusRequestV1) (*pb.UpdateOrderStatusResponseV1, error) {
-	//TODO implement me
-	panic("implement me")
+	id := models.OrderID(req.OrderId)
+	orderStatus := models.OrderStatus(req.Status)
+
+	isOk, err := o.orderService.UpdateOrderStatus(ctx, id, orderStatus)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, fmt.Sprintf("Internal Error: %s", err))
+	}
+
+	return &pb.UpdateOrderStatusResponseV1{IsOk: isOk}, nil
 }
 
 func (o *OrderImplementation) DeleteOrder(ctx context.Context, req *pb.DeleteOrderRequestV1) (*pb.DeleteOrderResponseV1, error) {
-	//TODO implement me
-	panic("implement me")
+	id := models.OrderID(req.OrderId)
+
+	isOk, err := o.orderService.DeleteOrder(ctx, id)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, fmt.Sprintf("Internal Error: %s", err))
+	}
+
+	return &pb.DeleteOrderResponseV1{IsOk: isOk}, nil
 }
