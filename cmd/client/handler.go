@@ -6,6 +6,7 @@ import (
 	"gitlab.ozon.dev/daker255/homework-8/internal/app/models"
 	service "gitlab.ozon.dev/daker255/homework-8/internal/app/services"
 	pb "gitlab.ozon.dev/daker255/homework-8/internal/pb/server"
+	"go.opentelemetry.io/otel/attribute"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
@@ -25,7 +26,11 @@ func NewUserClientImplementation(userService *service.UserService) *UserClientIm
 }
 
 func (o *UserClientImplementation) CreateUser(ctx context.Context, req *pb.CreateUserRequestV1) (*pb.CreateUserResponseV1, error) {
-	ctx, span := tracer.Tracer("client").Start(ctx, "Create User method called")
+	ctx, span := tracer.Tracer("client").Start(ctx, "CreateUser method called on client service")
+
+	span.SetAttributes(attribute.Key("username").String(req.Username))
+	span.SetAttributes(attribute.Key("email").String(req.Email))
+
 	defer span.End()
 
 	traceId := fmt.Sprintf("%s", span.SpanContext().TraceID())
@@ -56,7 +61,7 @@ func (o *UserClientImplementation) CreateUser(ctx context.Context, req *pb.Creat
 }
 
 func (o *UserClientImplementation) ListUser(ctx context.Context, _ *pb.ListUserRequestV1) (*pb.ListUserResponseV1, error) {
-	ctx, span := tracer.Tracer("client").Start(ctx, "List Users method called on client service")
+	ctx, span := tracer.Tracer("client").Start(ctx, "ListUser method called on client service")
 	defer span.End()
 
 	traceId := fmt.Sprintf("%s", span.SpanContext().TraceID())
@@ -84,43 +89,89 @@ func (o *UserClientImplementation) ListUser(ctx context.Context, _ *pb.ListUserR
 }
 
 func (o *UserClientImplementation) GetUser(ctx context.Context, req *pb.GetUserRequestV1) (*pb.GetUserResponseV1, error) {
-	id := models.UserID(req.UserId)
+	ctx, span := tracer.Tracer("client").Start(ctx, "GetUser method called on client service")
 
-	user, err := o.userService.GetByID(ctx, id)
+	span.SetAttributes(attribute.Key("user-id").Int(int(req.UserId)))
+	defer span.End()
+
+	traceId := fmt.Sprintf("%s", span.SpanContext().TraceID())
+	ctx = metadata.AppendToOutgoingContext(ctx, "x-trace-id", traceId)
+
+	// Create a connection to the server
+	conn, err := grpc.DialContext(ctx, "localhost:9000", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, fmt.Sprintf("Internal Error: %s", err))
+		return nil, err
 	}
 
+	// Create a client object with connection
+	srv := pb.NewUserServiceV1Client(conn)
+
+	// Calling a method on the server side
+	resp, err := srv.GetUser(ctx, &pb.GetUserRequestV1{
+		UserId: req.UserId,
+	})
+
 	result := &pb.UserDTO{
-		UserId:   uint32(user.ID),
-		Username: string(user.Username),
-		Email:    string(user.Email),
+		UserId:   resp.User.UserId,
+		Username: resp.User.Username,
+		Email:    resp.User.Email,
 	}
 
 	return &pb.GetUserResponseV1{User: result}, nil
 }
 
 func (o *UserClientImplementation) UpdateEmail(ctx context.Context, req *pb.UpdateEmailRequestV1) (*pb.UpdateEmailResponseV1, error) {
-	id := models.UserID(req.UserId)
-	email := models.UserEmail(req.Email)
+	ctx, span := tracer.Tracer("client").Start(ctx, "UpdateEmail method called on client service")
 
-	isOk, err := o.userService.UpdateEmail(ctx, id, email)
+	span.SetAttributes(attribute.Key("user-id").Int(int(req.UserId)))
+	span.SetAttributes(attribute.Key("email-provided").String(req.GetEmail()))
+	defer span.End()
+
+	traceId := fmt.Sprintf("%s", span.SpanContext().TraceID())
+	ctx = metadata.AppendToOutgoingContext(ctx, "x-trace-id", traceId)
+
+	// Create a connection to the server
+	conn, err := grpc.DialContext(ctx, "localhost:9000", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, fmt.Sprintf("Internal Error: %s", err))
+		return nil, err
 	}
 
-	return &pb.UpdateEmailResponseV1{IsOk: isOk}, nil
+	// Create a client object with connection
+	srv := pb.NewUserServiceV1Client(conn)
+
+	// Calling a method on the server side
+	resp, err := srv.UpdateEmail(ctx, &pb.UpdateEmailRequestV1{
+		UserId: req.UserId,
+		Email:  req.GetEmail(),
+	})
+
+	return &pb.UpdateEmailResponseV1{IsOk: resp.IsOk}, nil
 }
 
 func (o *UserClientImplementation) DeleteUser(ctx context.Context, req *pb.DeleteUserRequestV1) (*pb.DeleteUserResponseV1, error) {
-	id := models.UserID(req.UserId)
+	ctx, span := tracer.Tracer("client").Start(ctx, "DeleteUser method called on client service")
 
-	isOk, err := o.userService.DeleteUser(ctx, id)
+	span.SetAttributes(attribute.Key("user-id").Int(int(req.UserId)))
+	defer span.End()
+
+	traceId := fmt.Sprintf("%s", span.SpanContext().TraceID())
+	ctx = metadata.AppendToOutgoingContext(ctx, "x-trace-id", traceId)
+
+	// Create a connection to the server
+	conn, err := grpc.DialContext(ctx, "localhost:9000", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, fmt.Sprintf("Internal Error: %s", err))
+		return nil, err
 	}
 
-	return &pb.DeleteUserResponseV1{IsOk: isOk}, nil
+	// Create a client object with connection
+	srv := pb.NewUserServiceV1Client(conn)
+
+	// Calling a method on the server side
+	resp, err := srv.DeleteUser(ctx, &pb.DeleteUserRequestV1{
+		UserId: req.UserId,
+	})
+
+	return &pb.DeleteUserResponseV1{IsOk: resp.IsOk}, nil
 }
 
 type OrderClientImplementation struct {

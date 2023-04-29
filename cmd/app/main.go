@@ -2,6 +2,9 @@ package main
 
 import (
 	"context"
+	"fmt"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/spf13/viper"
 	"gitlab.ozon.dev/daker255/homework-8/internal/app/cli_commands"
 	"gitlab.ozon.dev/daker255/homework-8/internal/app/handlers"
@@ -10,16 +13,17 @@ import (
 	postgresqlRepository "gitlab.ozon.dev/daker255/homework-8/internal/app/repository/postgresql"
 	"gitlab.ozon.dev/daker255/homework-8/internal/app/server"
 	service "gitlab.ozon.dev/daker255/homework-8/internal/app/services"
+	"gitlab.ozon.dev/daker255/homework-8/internal/metrics"
 	pb "gitlab.ozon.dev/daker255/homework-8/internal/pb/server"
 	database "gitlab.ozon.dev/daker255/homework-8/pkg/database/clients"
 	jaegerExporter "go.opentelemetry.io/otel/exporters/jaeger"
 	"go.opentelemetry.io/otel/sdk/resource"
 	tracesdk "go.opentelemetry.io/otel/sdk/trace"
-	semconv "go.opentelemetry.io/otel/semconv/v1.12.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 	"google.golang.org/grpc"
-
 	"log"
 	"net"
+	"net/http"
 )
 
 var (
@@ -48,6 +52,10 @@ func TracerProvider(url, name string) error {
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
+
+	prometheus.MustRegister(metrics.UserCreateCounter)
+	prometheus.MustRegister(metrics.UserDeleteCounter)
+	prometheus.MustRegister(metrics.RequestGauge)
 
 	if err := initConfig(); err != nil {
 		log.Fatalf("can not read config file %s", err.Error())
@@ -117,6 +125,16 @@ func main() {
 		log.Printf("gRPC server successfully started on port %s", lsn.Addr().String())
 		if err := grpcServer.Serve(lsn); err != nil {
 			log.Fatal(err)
+		}
+	}()
+
+	// HTTP exporter для prometheus
+	go func() {
+		log.Printf("Prometheus server successfully started on port %s", ":9091")
+		err := http.ListenAndServe(":9091", promhttp.Handler())
+		if err != nil {
+			fmt.Println(err)
+			log.Fatalf("error while handling Prometheus http server")
 		}
 	}()
 

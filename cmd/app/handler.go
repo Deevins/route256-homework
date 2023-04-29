@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"gitlab.ozon.dev/daker255/homework-8/internal/app/models"
 	service "gitlab.ozon.dev/daker255/homework-8/internal/app/services"
+	"gitlab.ozon.dev/daker255/homework-8/internal/metrics"
 	pb "gitlab.ozon.dev/daker255/homework-8/internal/pb/server"
 	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc/codes"
@@ -23,29 +24,11 @@ func NewUserImplementation(userService *service.UserService) *UserImplementation
 	return &UserImplementation{userService: userService}
 }
 
-// TODO: создать функции для клиента - вкладывать в контекст запроса x-trace-id,
-// а для сервера - парсить из контекста запроса x-trace-id и вкладывать в trace-route
-
 func (o *UserImplementation) CreateUser(ctx context.Context, req *pb.CreateUserRequestV1) (*pb.CreateUserResponseV1, error) {
-	// Extract TraceID from header
-	md, _ := metadata.FromIncomingContext(ctx)
-	traceIdString := md["x-trace-id"][0]
-
-	// Convert string to byte array
-	traceId, err := trace.TraceIDFromHex(traceIdString)
+	_, err := extractTraceIDFromRequest(ctx, "server", "Create User method called on User-service")
 	if err != nil {
 		return nil, err
 	}
-
-	// Creating a span context with a predefined trace-id
-	spanContext := trace.NewSpanContext(trace.SpanContextConfig{
-		TraceID: traceId,
-	})
-	// Embedding span config into the context
-	ctx = trace.ContextWithSpanContext(ctx, spanContext)
-
-	ctx, span := tracer.Tracer("server").Start(ctx, "Create User method called on core-service")
-	defer span.End()
 
 	username := models.Username(req.Username)
 	email := models.UserEmail(req.Email)
@@ -56,29 +39,17 @@ func (o *UserImplementation) CreateUser(ctx context.Context, req *pb.CreateUserR
 	}
 
 	res := pb.CreateUserResponseV1{UserId: uint32(id)}
+
+	metrics.UserCreateCounter.Inc()
+	metrics.RequestGauge.Inc()
 	return &res, nil
 }
 
-func (o *UserImplementation) ListUser(ctx context.Context, req *pb.ListUserRequestV1) (*pb.ListUserResponseV1, error) {
-	// Extract TraceID from header
-	md, _ := metadata.FromIncomingContext(ctx)
-	traceIdString := md["x-trace-id"][0]
-
-	// Convert string to byte array
-	traceId, err := trace.TraceIDFromHex(traceIdString)
+func (o *UserImplementation) ListUser(ctx context.Context, _ *pb.ListUserRequestV1) (*pb.ListUserResponseV1, error) {
+	_, err := extractTraceIDFromRequest(ctx, "server", "ListUser method called on User-service")
 	if err != nil {
 		return nil, err
 	}
-
-	// Creating a span context with a predefined trace-id
-	spanContext := trace.NewSpanContext(trace.SpanContextConfig{
-		TraceID: traceId,
-	})
-	// Embedding span config into the context
-	ctx = trace.ContextWithSpanContext(ctx, spanContext)
-
-	ctx, span := tracer.Tracer("server").Start(ctx, "List Users method called on core-service")
-	defer span.End()
 
 	users, err := o.userService.GetAll(ctx)
 	if err != nil {
@@ -94,12 +65,19 @@ func (o *UserImplementation) ListUser(ctx context.Context, req *pb.ListUserReque
 			Email:    string(m.Email),
 		})
 	}
+
+	metrics.RequestGauge.Inc()
 	return &pb.ListUserResponseV1{
 		Users: result,
 	}, nil
 }
 
 func (o *UserImplementation) GetUser(ctx context.Context, req *pb.GetUserRequestV1) (*pb.GetUserResponseV1, error) {
+	_, err := extractTraceIDFromRequest(ctx, "server", "GetUser method called on User-service")
+	if err != nil {
+		return nil, err
+	}
+
 	id := models.UserID(req.UserId)
 
 	user, err := o.userService.GetByID(ctx, id)
@@ -113,10 +91,16 @@ func (o *UserImplementation) GetUser(ctx context.Context, req *pb.GetUserRequest
 		Email:    string(user.Email),
 	}
 
+	metrics.RequestGauge.Inc()
 	return &pb.GetUserResponseV1{User: result}, nil
 }
 
 func (o *UserImplementation) UpdateEmail(ctx context.Context, req *pb.UpdateEmailRequestV1) (*pb.UpdateEmailResponseV1, error) {
+	_, err := extractTraceIDFromRequest(ctx, "server", "UpdateEmail method called on User-service")
+	if err != nil {
+		return nil, err
+	}
+
 	id := models.UserID(req.UserId)
 	email := models.UserEmail(req.Email)
 
@@ -125,17 +109,24 @@ func (o *UserImplementation) UpdateEmail(ctx context.Context, req *pb.UpdateEmai
 		return nil, status.Errorf(codes.Internal, fmt.Sprintf("Internal Error: %s", err))
 	}
 
+	metrics.RequestGauge.Inc()
 	return &pb.UpdateEmailResponseV1{IsOk: isOk}, nil
 }
 
 func (o *UserImplementation) DeleteUser(ctx context.Context, req *pb.DeleteUserRequestV1) (*pb.DeleteUserResponseV1, error) {
-	id := models.UserID(req.UserId)
+	_, err := extractTraceIDFromRequest(ctx, "server", "DeleteUser method called on User-service")
+	if err != nil {
+		return nil, err
+	}
 
+	id := models.UserID(req.UserId)
 	isOk, err := o.userService.DeleteUser(ctx, id)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, fmt.Sprintf("Internal Error: %s", err))
 	}
 
+	metrics.UserDeleteCounter.Inc()
+	metrics.RequestGauge.Inc()
 	return &pb.DeleteUserResponseV1{IsOk: isOk}, nil
 }
 
@@ -233,4 +224,29 @@ func (o *OrderImplementation) DeleteOrder(ctx context.Context, req *pb.DeleteOrd
 	}
 
 	return &pb.DeleteOrderResponseV1{IsOk: isOk}, nil
+}
+
+func extractTraceIDFromRequest(ctx context.Context, traceName, spanName string) (any, error) {
+	// Extract TraceID from header
+	md, _ := metadata.FromIncomingContext(ctx)
+	traceIdString := md["x-trace-id"][0]
+
+	// Convert string to byte array
+	traceId, err := trace.TraceIDFromHex(traceIdString)
+	if err != nil {
+		return nil, err
+	}
+
+	// Creating a span context with a predefined trace-id
+	spanContext := trace.NewSpanContext(trace.SpanContextConfig{
+		TraceID: traceId,
+	})
+	// Embedding span config into the context
+	ctx = trace.ContextWithSpanContext(ctx, spanContext)
+
+	ctx, span := tracer.Tracer(traceName).Start(ctx, spanName)
+	defer span.End()
+
+	return nil, nil
+
 }
