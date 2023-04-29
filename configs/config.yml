@@ -6,5 +6,11 @@ db:
   dbname: "postgres"
   sslmode: "disable"
 
-server:
-      port: "8080"
+http_server:
+  port: "8080"
+
+grpc_server:
+  port: ":9000"
+
+grpc_client:
+  port: ":9001"

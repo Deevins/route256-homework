@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"fmt"
 	models "gitlab.ozon.dev/daker255/homework-8/internal/app/models"
 	repository "gitlab.ozon.dev/daker255/homework-8/internal/app/repository/postgresql"
 )
@@ -21,7 +20,6 @@ func NewOrderService(userRepo *repository.PostgresqlUserRepo, orderRepo *reposit
 
 func (o *OrderService) CreateOrder(ctx context.Context, userID models.UserID, productName models.ProductName, quantity models.Quantity) (models.OrderID, error) {
 	if _, err := o.userRepo.GetByID(ctx, userID); err != nil {
-		fmt.Println("qweqwe")
 		return 0, err
 	}
 

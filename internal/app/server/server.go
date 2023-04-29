@@ -25,7 +25,7 @@ func (s *Server) Run(port string, router *httprouter.Router) error {
 		MaxHeaderBytes: 1 << 20, // 1 MB
 	}
 
-	log.Printf("server successfully started on port %s", port)
+	log.Printf("http server successfully started on port %s", port)
 
 	return s.httpServer.ListenAndServe()
 }

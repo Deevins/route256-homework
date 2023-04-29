@@ -20,7 +20,6 @@ migration-down:
 .PHONY: compose-up
 compose-up:
 	docker-compose build
-	docker-compose up -d postgres
 
 .PHONY: compose-rm
 compose-rm:
@@ -34,12 +33,21 @@ unit-tests:
 unit-tests:
 	go test .\tests\ -v
 
-.PHONY: proto
-proto:
+.PHONY: proto-server
+proto-server:
+#	rm -rf ./internal/pb
+#	mkdir -p ./internal/pb
+	protoc ./api/proto/server/*.proto \
+               --go_out=./internal/pb/server \
+               --go-grpc_out=./internal/pb/server \
+               --proto_path=.
+
+.PHONY: proto-client
+proto-client:
 #	rm -rf ./internal/pb
 #	mkdir -p ./internal/pb
 
-	protoc ./api/proto/*.proto \
-               --go_out=./internal/pb/ \
-               --go-grpc_out=./internal/pb \
+	protoc ./api/proto/client/*.proto \
+               --go_out=./internal/pb/server \
+               --go-grpc_out=./internal/pb/server \
                --proto_path=.

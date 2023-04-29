@@ -3,12 +3,8 @@ package main
 import (
 	"context"
 	"github.com/spf13/viper"
-	"gitlab.ozon.dev/daker255/homework-8/internal/app/cli_commands"
-	"gitlab.ozon.dev/daker255/homework-8/internal/app/handlers"
 	"gitlab.ozon.dev/daker255/homework-8/internal/app/models"
-	"gitlab.ozon.dev/daker255/homework-8/internal/app/repository"
 	postgresqlRepository "gitlab.ozon.dev/daker255/homework-8/internal/app/repository/postgresql"
-	"gitlab.ozon.dev/daker255/homework-8/internal/app/server"
 	service "gitlab.ozon.dev/daker255/homework-8/internal/app/services"
 	pb "gitlab.ozon.dev/daker255/homework-8/internal/pb/server"
 	database "gitlab.ozon.dev/daker255/homework-8/pkg/database/clients"
@@ -17,7 +13,7 @@ import (
 	tracesdk "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.12.0"
 	"google.golang.org/grpc"
-
+	"google.golang.org/grpc/reflection"
 	"log"
 	"net"
 )
@@ -53,16 +49,10 @@ func main() {
 		log.Fatalf("can not read config file %s", err.Error())
 	}
 
-	err := TracerProvider("http://localhost:14268/api/traces", "Core-GRPC-server")
-	if err != nil {
+	if err := TracerProvider("http://localhost:14268/api/traces", "GRPC-client"); err != nil {
 		log.Fatal(err)
 	}
-	defer func(tracer *tracesdk.TracerProvider, ctx context.Context) {
-		err := tracer.Shutdown(ctx)
-		if err != nil {
-
-		}
-	}(tracer, context.Background())
+	defer tracer.Shutdown(ctx)
 
 	db, err := database.NewDB(ctx, models.Config{
 		Host:     viper.GetString("db.host"),
@@ -79,58 +69,34 @@ func main() {
 	defer db.GetPool(ctx).Close()
 
 	// init repos
-	coreRepo := repository.NewPostgresqlRepository(db)
 	userRepo := postgresqlRepository.NewPostgresqlUserRepo(db)
 	orderRepo := postgresqlRepository.NewPostgresqlOrderRepo(db)
 
 	//init services
-	coreService := service.NewCoreService(coreRepo)
 	userService := service.NewUserService(userRepo)
 	orderService := service.NewOrderService(userRepo, orderRepo)
 
-	// init CLI commands and CLI handler
-	userCommand := cli_commands.NewUserCommand(ctx, userService)
-	orderCommand := cli_commands.NewOrderCommand(ctx, orderService)
-	spellCommand := cli_commands.NewSpellCommand()
-
-	cliHandler := NewCLIHandler()
-	//
-	cliHandler.Register("order", orderCommand)
-	cliHandler.Register("user", userCommand)
-	cliHandler.Register("spell", spellCommand)
-
-	// init	 handlers for our end-points
-	coreHandler := handlers.NewRootHandler(ctx, coreService)
-
-	grpcServerPort := viper.GetString("grpc_server.port")
+	grpcServerPort := viper.GetString("grpc_client.port")
+	// Create a TCP connection
 	lsn, err := net.Listen("tcp", grpcServerPort)
 	if err != nil {
 		log.Fatal(err)
 	}
-
+	// Create the GRPC server
 	grpcServer := grpc.NewServer()
 
-	pb.RegisterUserServiceV1Server(grpcServer, NewUserImplementation(userService))
-	pb.RegisterOrderServiceV1Server(grpcServer, NewOrderImplementation(orderService))
+	// Allows us to use a 'list' call to list all available APIs
+	reflection.Register(grpcServer)
 
-	go func() {
-		log.Printf("gRPC server successfully started on port %s", lsn.Addr().String())
-		if err := grpcServer.Serve(lsn); err != nil {
-			log.Fatal(err)
-		}
-	}()
+	// We register an objects that should implement all the described APIs
+	pb.RegisterUserServiceV1Server(grpcServer, NewUserClientImplementation(userService))
+	pb.RegisterOrderServiceV1Server(grpcServer, NewOrderClientImplementation(orderService))
 
-	// start http server
-	httpServerPort := viper.GetString("http_server.port")
-	srv := server.NewServer()
-	if err := srv.Run(httpServerPort, coreHandler.InitRoutes()); err != nil {
-		log.Fatalf("could not start server on port %s with err %s", httpServerPort, err)
+	// Serving the GRPC server on a created TCP socket
+	log.Printf("gRPC server successfully started on port %s", lsn.Addr().String())
+	if err := grpcServer.Serve(lsn); err != nil {
+		log.Fatal(err)
 	}
-
-	//initialize endless loop to wait for commands
-	//for {
-	//	go cliHandler.CommandProcessing()
-	//}
 }
 
 func initConfig() error {
