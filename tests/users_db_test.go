@@ -3,13 +3,14 @@ package tests
 import (
 	"context"
 	"fmt"
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	"gitlab.ozon.dev/daker255/homework-8/internal/app/models"
 	models_dto "gitlab.ozon.dev/daker255/homework-8/internal/app/repository/models"
 	repository "gitlab.ozon.dev/daker255/homework-8/internal/app/repository/postgresql"
 	"gitlab.ozon.dev/daker255/homework-8/tests/fixtures"
 	_ "gitlab.ozon.dev/daker255/homework-8/tests/pgmock"
-	"testing"
 )
 
 func TestCreateUser(t *testing.T) {

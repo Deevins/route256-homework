@@ -3,13 +3,14 @@ package pgmock
 import (
 	"context"
 	"fmt"
-	"github.com/spf13/viper"
-	"gitlab.ozon.dev/daker255/homework-8/internal/app/models"
-	database "gitlab.ozon.dev/daker255/homework-8/pkg/database/clients"
 	"log"
 	"strings"
 	"sync"
 	"testing"
+
+	"github.com/spf13/viper"
+	"gitlab.ozon.dev/daker255/homework-8/internal/app/models"
+	database "gitlab.ozon.dev/daker255/homework-8/pkg/database/clients"
 )
 
 type TDB struct {

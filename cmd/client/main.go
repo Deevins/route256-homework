@@ -2,11 +2,14 @@ package main
 
 import (
 	"context"
+	"log"
+	"net"
+
 	"github.com/spf13/viper"
 	"gitlab.ozon.dev/daker255/homework-8/internal/app/models"
 	postgresqlRepository "gitlab.ozon.dev/daker255/homework-8/internal/app/repository/postgresql"
 	service "gitlab.ozon.dev/daker255/homework-8/internal/app/services"
-	pb "gitlab.ozon.dev/daker255/homework-8/internal/pb/server"
+	pb "gitlab.ozon.dev/daker255/homework-8/internal/pb"
 	database "gitlab.ozon.dev/daker255/homework-8/pkg/database/clients"
 	jaegerExporter "go.opentelemetry.io/otel/exporters/jaeger"
 	"go.opentelemetry.io/otel/sdk/resource"
@@ -14,8 +17,6 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.12.0"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
-	"log"
-	"net"
 )
 
 var (
@@ -52,7 +53,12 @@ func main() {
 	if err := TracerProvider("http://localhost:14268/api/traces", "GRPC-client"); err != nil {
 		log.Fatal(err)
 	}
-	defer tracer.Shutdown(ctx)
+	defer func(tracer *tracesdk.TracerProvider, ctx context.Context) {
+		err := tracer.Shutdown(ctx)
+		if err != nil {
+			log.Fatalf("graceful shutdown Jaeger not successful, error: %s", err)
+		}
+	}(tracer, ctx)
 
 	db, err := database.NewDB(ctx, models.Config{
 		Host:     viper.GetString("db.host"),

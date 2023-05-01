@@ -1,8 +1,9 @@
 package fixtures
 
 import (
-	"gitlab.ozon.dev/daker255/homework-8/internal/app/models"
 	"time"
+
+	"gitlab.ozon.dev/daker255/homework-8/internal/app/models"
 )
 
 type OrderBuilder struct {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+
 	"gitlab.ozon.dev/daker255/homework-8/internal/app/models"
 	models_dto "gitlab.ozon.dev/daker255/homework-8/internal/app/repository/models"
 	database "gitlab.ozon.dev/daker255/homework-8/pkg/database/clients"
@@ -51,7 +52,7 @@ func (r *PostgresqlUserRepo) UpdateUsername(ctx context.Context, ID models.UserI
 	result, _ := r.db.Exec(ctx,
 		"UPDATE users SET username = $2 WHERE id = $1", ID, username)
 
-	if result.RowsAffected() > 0 == false {
+	if !(result.RowsAffected() > 0) {
 		return false, models.ErrObjectNotFound
 	}
 	return result.RowsAffected() > 0, nil
@@ -60,7 +61,7 @@ func (r *PostgresqlUserRepo) UpdateUsername(ctx context.Context, ID models.UserI
 func (r *PostgresqlUserRepo) UpdateEmail(ctx context.Context, ID models.UserID, email models.UserEmail) (bool, error) {
 	result, _ := r.db.Exec(ctx,
 		"UPDATE users SET email = $2 WHERE id = $1", ID, email)
-	if result.RowsAffected() > 0 == false {
+	if !(result.RowsAffected() > 0) {
 		return false, models.ErrObjectNotFound
 	}
 	return result.RowsAffected() > 0, nil

@@ -3,11 +3,12 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/julienschmidt/httprouter"
-	"gitlab.ozon.dev/daker255/homework-8/internal/app/models"
 	"log"
 	"net/http"
 	"strconv"
+
+	"github.com/julienschmidt/httprouter"
+	"gitlab.ozon.dev/daker255/homework-8/internal/app/models"
 )
 
 type orderRequest struct {
@@ -21,7 +22,7 @@ func (rh *RootHandler) createOrder(w http.ResponseWriter, r *http.Request, _ htt
 
 	if userID == "" {
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode("userID header not provided")
+		_ = json.NewEncoder(w).Encode("userID header not provided")
 		return
 	}
 
@@ -29,7 +30,7 @@ func (rh *RootHandler) createOrder(w http.ResponseWriter, r *http.Request, _ htt
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		print(userID)
-		json.NewEncoder(w).Encode("incorrect userID provided")
+		_ = json.NewEncoder(w).Encode("incorrect userID provided")
 		return
 	}
 
@@ -59,7 +60,7 @@ func (rh *RootHandler) createOrder(w http.ResponseWriter, r *http.Request, _ htt
 		return
 	}
 
-	w.Write(jsonStr)
+	_, _ = w.Write(jsonStr)
 }
 
 func (rh *RootHandler) getAllOrders(w http.ResponseWriter, _ *http.Request, _ httprouter.Params) {
@@ -75,7 +76,7 @@ func (rh *RootHandler) getAllOrders(w http.ResponseWriter, _ *http.Request, _ ht
 			return
 		}
 
-		w.Write(jsonStr)
+		_, _ = w.Write(jsonStr)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -85,7 +86,7 @@ func (rh *RootHandler) getAllOrders(w http.ResponseWriter, _ *http.Request, _ ht
 		return
 	}
 
-	w.Write(jsonStr)
+	_, _ = w.Write(jsonStr)
 }
 
 func (rh *RootHandler) getOrderByID(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
@@ -97,14 +98,14 @@ func (rh *RootHandler) getOrderByID(w http.ResponseWriter, r *http.Request, para
 	order, err := rh.services.Order.GetByID(rh.ctx, parsedID)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(err.Error())
+		_ = json.NewEncoder(w).Encode(err.Error())
 		return
 	}
 	userID := r.Header.Get("userID")
 
 	if userID == "" {
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode("userID header not provided")
+		_ = json.NewEncoder(w).Encode("userID header not provided")
 		return
 	}
 
@@ -115,7 +116,7 @@ func (rh *RootHandler) getOrderByID(w http.ResponseWriter, r *http.Request, para
 		return
 	}
 
-	w.Write(jsonStr)
+	_, _ = w.Write(jsonStr)
 
 }
 
@@ -141,5 +142,5 @@ func (rh *RootHandler) deleteOrder(w http.ResponseWriter, _ *http.Request, param
 	if err != nil {
 		return
 	}
-	w.Write(jsonStr)
+	_, _ = w.Write(jsonStr)
 }

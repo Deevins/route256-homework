@@ -6,16 +6,17 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+	"time"
+
 	"github.com/golang/mock/gomock"
 	"github.com/julienschmidt/httprouter"
 	"github.com/magiconair/properties/assert"
 	"gitlab.ozon.dev/daker255/homework-8/internal/app/models"
 	service "gitlab.ozon.dev/daker255/homework-8/internal/app/services"
 	mock_service "gitlab.ozon.dev/daker255/homework-8/internal/app/services/mocks"
-	"net/http"
-	"net/http/httptest"
-	"testing"
-	"time"
 )
 
 func TestRootHandler_createOrder(t *testing.T) {

@@ -3,8 +3,9 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"gitlab.ozon.dev/daker255/homework-8/internal/app/cli_commands"
 	"os"
+
+	"gitlab.ozon.dev/daker255/homework-8/internal/app/cli_commands"
 )
 
 const helpCommand = "help"

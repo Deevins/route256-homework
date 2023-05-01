@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+
 	"gitlab.ozon.dev/daker255/homework-8/internal/app/models"
 	database "gitlab.ozon.dev/daker255/homework-8/pkg/database/clients"
 )
@@ -63,7 +64,7 @@ func (r *PostgresqlOrderRepo) DeleteOrder(ctx context.Context, ID models.OrderID
 	result, _ := r.db.Exec(ctx,
 		"DELETE FROM orders WHERE id = $1", ID)
 
-	if result.RowsAffected() > 0 == false {
+	if !(result.RowsAffected() > 0) {
 		return false, models.ErrObjectNotFound
 	}
 

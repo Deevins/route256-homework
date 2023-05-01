@@ -4,11 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/julienschmidt/httprouter"
-	"gitlab.ozon.dev/daker255/homework-8/internal/app/models"
 	"log"
 	"net/http"
 	"strconv"
+
+	"github.com/julienschmidt/httprouter"
+	"gitlab.ozon.dev/daker255/homework-8/internal/app/models"
 )
 
 var (
@@ -45,7 +46,7 @@ func (rh *RootHandler) createUser(w http.ResponseWriter, r *http.Request, _ http
 			return
 		}
 
-		w.Write(jsonStr)
+		_, _ = w.Write(jsonStr)
 		return
 	}
 
@@ -63,7 +64,7 @@ func (rh *RootHandler) createUser(w http.ResponseWriter, r *http.Request, _ http
 				return
 			}
 
-			w.Write(jsonStr)
+			_, _ = w.Write(jsonStr)
 			return
 		}
 		w.WriteHeader(http.StatusInternalServerError)
@@ -76,7 +77,7 @@ func (rh *RootHandler) createUser(w http.ResponseWriter, r *http.Request, _ http
 			return
 		}
 
-		w.Write(jsonStr)
+		_, _ = w.Write(jsonStr)
 		return
 	}
 
@@ -90,7 +91,7 @@ func (rh *RootHandler) createUser(w http.ResponseWriter, r *http.Request, _ http
 		return
 	}
 
-	w.Write(jsonStr)
+	_, _ = w.Write(jsonStr)
 }
 
 func (rh *RootHandler) getAllUsers(w http.ResponseWriter, _ *http.Request, _ httprouter.Params) {
@@ -106,7 +107,7 @@ func (rh *RootHandler) getAllUsers(w http.ResponseWriter, _ *http.Request, _ htt
 			return
 		}
 
-		w.Write(jsonStr)
+		_, _ = w.Write(jsonStr)
 		return
 	}
 
@@ -117,7 +118,7 @@ func (rh *RootHandler) getAllUsers(w http.ResponseWriter, _ *http.Request, _ htt
 		return
 	}
 
-	w.Write(jsonStr)
+	_, _ = w.Write(jsonStr)
 }
 
 func (rh *RootHandler) getUserByID(w http.ResponseWriter, _ *http.Request, params httprouter.Params) {
@@ -135,7 +136,8 @@ func (rh *RootHandler) getUserByID(w http.ResponseWriter, _ *http.Request, param
 
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(err.Error())
+		_ = json.NewEncoder(w).Encode(err.Error())
+
 		res := Response{
 			Message: "service failure",
 			Status:  http.StatusInternalServerError,
@@ -145,7 +147,7 @@ func (rh *RootHandler) getUserByID(w http.ResponseWriter, _ *http.Request, param
 			return
 		}
 
-		w.Write(jsonStr)
+		_, _ = w.Write(jsonStr)
 		return
 	}
 
@@ -163,7 +165,7 @@ func (rh *RootHandler) getUserByID(w http.ResponseWriter, _ *http.Request, param
 		return
 	}
 
-	w.Write(jsonStr)
+	_, _ = w.Write(jsonStr)
 
 }
 
@@ -179,7 +181,7 @@ func (rh *RootHandler) deleteUser(w http.ResponseWriter, _ *http.Request, params
 	fmt.Println(parsedID)
 
 	isDeleted, _ := rh.services.User.DeleteUser(rh.ctx, parsedID)
-	if isDeleted == false {
+	if !isDeleted {
 		//res := Response{
 		//	Message: "ID is empty",
 		//	Status:  http.StatusInternalServerError,
@@ -199,5 +201,5 @@ func (rh *RootHandler) deleteUser(w http.ResponseWriter, _ *http.Request, params
 		return
 	}
 
-	w.Write(jsonStr)
+	_, _ = w.Write(jsonStr)
 }

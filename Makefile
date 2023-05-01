@@ -33,21 +33,11 @@ unit-tests:
 unit-tests:
 	go test .\tests\ -v
 
-.PHONY: proto-server
-proto-server:
+.PHONY: proto
+proto:
 #	rm -rf ./internal/pb
 #	mkdir -p ./internal/pb
-	protoc ./api/proto/server/*.proto \
-               --go_out=./internal/pb/server \
-               --go-grpc_out=./internal/pb/server \
-               --proto_path=.
-
-.PHONY: proto-client
-proto-client:
-#	rm -rf ./internal/pb
-#	mkdir -p ./internal/pb
-
-	protoc ./api/proto/client/*.proto \
-               --go_out=./internal/pb/server \
-               --go-grpc_out=./internal/pb/server \
+	protoc ./api/proto/*.proto \
+               --go_out=./internal/pb \
+               --go-grpc_out=./internal/pb \
                --proto_path=.

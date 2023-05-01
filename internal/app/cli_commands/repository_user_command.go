@@ -5,10 +5,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"gitlab.ozon.dev/daker255/homework-8/internal/app/models"
-	service "gitlab.ozon.dev/daker255/homework-8/internal/app/services"
 	"log"
 	"os"
+
+	"gitlab.ozon.dev/daker255/homework-8/internal/app/models"
+	service "gitlab.ozon.dev/daker255/homework-8/internal/app/services"
 )
 
 var _ Command = (*UserCommand)(nil)
@@ -162,7 +163,7 @@ func (uc *UserCommand) handleUsersRepositoryCommands(ctx context.Context, method
 		}
 
 		isDeleted, _ := uc.userService.DeleteUser(ctx, userID)
-		if isDeleted == false {
+		if !isDeleted {
 			log.Fatalf("error occured in usersRepo.Delete with err %s", err)
 			return
 		}

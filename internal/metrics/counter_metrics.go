@@ -4,6 +4,8 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
+// use constLabels ["path"]
+
 var UserCreateCounter = prometheus.NewCounter(prometheus.CounterOpts{
 	Name: "create_user_requests",
 	Help: "count of create_user_requests",

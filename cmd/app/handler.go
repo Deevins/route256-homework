@@ -3,10 +3,11 @@ package main
 import (
 	"context"
 	"fmt"
+
 	"gitlab.ozon.dev/daker255/homework-8/internal/app/models"
 	service "gitlab.ozon.dev/daker255/homework-8/internal/app/services"
 	"gitlab.ozon.dev/daker255/homework-8/internal/metrics"
-	pb "gitlab.ozon.dev/daker255/homework-8/internal/pb/server"
+	"gitlab.ozon.dev/daker255/homework-8/internal/pb"
 	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -25,7 +26,7 @@ func NewUserImplementation(userService *service.UserService) *UserImplementation
 }
 
 func (o *UserImplementation) CreateUser(ctx context.Context, req *pb.CreateUserRequestV1) (*pb.CreateUserResponseV1, error) {
-	_, err := extractTraceIDFromRequest(ctx, "server", "Create User method called on User-service")
+	err := extractTraceIDFromRequest(ctx, "server", "CreateUser method called on User-service")
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +47,7 @@ func (o *UserImplementation) CreateUser(ctx context.Context, req *pb.CreateUserR
 }
 
 func (o *UserImplementation) ListUser(ctx context.Context, _ *pb.ListUserRequestV1) (*pb.ListUserResponseV1, error) {
-	_, err := extractTraceIDFromRequest(ctx, "server", "ListUser method called on User-service")
+	err := extractTraceIDFromRequest(ctx, "server", "ListUser method called on User-service")
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +74,7 @@ func (o *UserImplementation) ListUser(ctx context.Context, _ *pb.ListUserRequest
 }
 
 func (o *UserImplementation) GetUser(ctx context.Context, req *pb.GetUserRequestV1) (*pb.GetUserResponseV1, error) {
-	_, err := extractTraceIDFromRequest(ctx, "server", "GetUser method called on User-service")
+	err := extractTraceIDFromRequest(ctx, "server", "GetUser method called on User-service")
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +97,7 @@ func (o *UserImplementation) GetUser(ctx context.Context, req *pb.GetUserRequest
 }
 
 func (o *UserImplementation) UpdateEmail(ctx context.Context, req *pb.UpdateEmailRequestV1) (*pb.UpdateEmailResponseV1, error) {
-	_, err := extractTraceIDFromRequest(ctx, "server", "UpdateEmail method called on User-service")
+	err := extractTraceIDFromRequest(ctx, "server", "UpdateEmail method called on User-service")
 	if err != nil {
 		return nil, err
 	}
@@ -114,7 +115,7 @@ func (o *UserImplementation) UpdateEmail(ctx context.Context, req *pb.UpdateEmai
 }
 
 func (o *UserImplementation) DeleteUser(ctx context.Context, req *pb.DeleteUserRequestV1) (*pb.DeleteUserResponseV1, error) {
-	_, err := extractTraceIDFromRequest(ctx, "server", "DeleteUser method called on User-service")
+	err := extractTraceIDFromRequest(ctx, "server", "DeleteUser method called on User-service")
 	if err != nil {
 		return nil, err
 	}
@@ -141,6 +142,10 @@ func NewOrderImplementation(orderService *service.OrderService) *OrderImplementa
 }
 
 func (o *OrderImplementation) CreateOrder(ctx context.Context, req *pb.CreateOrderRequestV1) (*pb.CreateOrderResponseV1, error) {
+	err := extractTraceIDFromRequest(ctx, "server", "CreateOrder method called on Order-service")
+	if err != nil {
+		return nil, err
+	}
 	userID := models.UserID(req.UserId)
 	productName := models.ProductName(req.GetProductName())
 	quantity := models.Quantity(req.GetQuantity())
@@ -155,13 +160,19 @@ func (o *OrderImplementation) CreateOrder(ctx context.Context, req *pb.CreateOrd
 	return &res, nil
 }
 
-func (o *OrderImplementation) ListOrder(ctx context.Context, req *pb.ListOrderRequestV1) (*pb.ListOrderResponseV1, error) {
+func (o *OrderImplementation) ListOrder(ctx context.Context, _ *pb.ListOrderRequestV1) (*pb.ListOrderResponseV1, error) {
+	err := extractTraceIDFromRequest(ctx, "server", "ListOrder method called on Order-service")
+	if err != nil {
+		return nil, err
+	}
 
 	orders, err := o.orderService.GetAll(ctx)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, fmt.Sprintf("Internal Error: %s", err))
 	}
-
+	if err != nil {
+		return nil, err
+	}
 	result := make([]*pb.Order, 0, len(orders))
 
 	for _, m := range orders {
@@ -182,6 +193,11 @@ func (o *OrderImplementation) ListOrder(ctx context.Context, req *pb.ListOrderRe
 }
 
 func (o *OrderImplementation) GetOrder(ctx context.Context, req *pb.GetOrderRequestV1) (*pb.GetOrderResponseV1, error) {
+	err := extractTraceIDFromRequest(ctx, "server", "GetOrder method called on Order-service")
+	if err != nil {
+		return nil, err
+	}
+
 	id := models.OrderID(req.OrderId)
 
 	order, err := o.orderService.GetByID(ctx, id)
@@ -204,6 +220,11 @@ func (o *OrderImplementation) GetOrder(ctx context.Context, req *pb.GetOrderRequ
 }
 
 func (o *OrderImplementation) UpdateOrderStatus(ctx context.Context, req *pb.UpdateOrderStatusRequestV1) (*pb.UpdateOrderStatusResponseV1, error) {
+	err := extractTraceIDFromRequest(ctx, "server", "UpdateOrderStatus method called on Order-service")
+	if err != nil {
+		return nil, err
+	}
+
 	id := models.OrderID(req.OrderId)
 	orderStatus := models.OrderStatus(req.Status)
 
@@ -216,6 +237,11 @@ func (o *OrderImplementation) UpdateOrderStatus(ctx context.Context, req *pb.Upd
 }
 
 func (o *OrderImplementation) DeleteOrder(ctx context.Context, req *pb.DeleteOrderRequestV1) (*pb.DeleteOrderResponseV1, error) {
+	err := extractTraceIDFromRequest(ctx, "server", "DeleteOrder method called on Order-service")
+	if err != nil {
+		return nil, err
+	}
+
 	id := models.OrderID(req.OrderId)
 
 	isOk, err := o.orderService.DeleteOrder(ctx, id)
@@ -226,15 +252,14 @@ func (o *OrderImplementation) DeleteOrder(ctx context.Context, req *pb.DeleteOrd
 	return &pb.DeleteOrderResponseV1{IsOk: isOk}, nil
 }
 
-func extractTraceIDFromRequest(ctx context.Context, traceName, spanName string) (any, error) {
+func extractTraceIDFromRequest(ctx context.Context, traceName, spanName string) error {
 	// Extract TraceID from header
 	md, _ := metadata.FromIncomingContext(ctx)
 	traceIdString := md["x-trace-id"][0]
-
 	// Convert string to byte array
 	traceId, err := trace.TraceIDFromHex(traceIdString)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	// Creating a span context with a predefined trace-id
@@ -244,9 +269,8 @@ func extractTraceIDFromRequest(ctx context.Context, traceName, spanName string) 
 	// Embedding span config into the context
 	ctx = trace.ContextWithSpanContext(ctx, spanContext)
 
-	ctx, span := tracer.Tracer(traceName).Start(ctx, spanName)
+	_, span := tracer.Tracer(traceName).Start(ctx, spanName)
 	defer span.End()
 
-	return nil, nil
-
+	return nil
 }

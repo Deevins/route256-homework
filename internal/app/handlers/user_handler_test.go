@@ -6,6 +6,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
 	"github.com/golang/mock/gomock"
 	"github.com/julienschmidt/httprouter"
 	"github.com/magiconair/properties/assert"
@@ -13,9 +17,6 @@ import (
 	models_dto "gitlab.ozon.dev/daker255/homework-8/internal/app/repository/models"
 	service "gitlab.ozon.dev/daker255/homework-8/internal/app/services"
 	mock_service "gitlab.ozon.dev/daker255/homework-8/internal/app/services/mocks"
-	"net/http"
-	"net/http/httptest"
-	"testing"
 )
 
 func TestRootHandler_createUser(t *testing.T) {
@@ -210,7 +211,7 @@ func TestRootHandler_getUserByID(t *testing.T) {
 				}, nil)
 			},
 			expectedStatusCode:   http.StatusOK,
-			expectedResponseBody: fmt.Sprintf(`{"id":1,"username":"qwe","email":"qwe"}`),
+			expectedResponseBody: `{"id":1,"username":"qwe","email":"qwe"}`,
 		},
 	}
 

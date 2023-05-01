@@ -5,11 +5,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	models "gitlab.ozon.dev/daker255/homework-8/internal/app/models"
-	service "gitlab.ozon.dev/daker255/homework-8/internal/app/services"
 	"log"
 	"os"
 	"strconv"
+
+	models "gitlab.ozon.dev/daker255/homework-8/internal/app/models"
+	service "gitlab.ozon.dev/daker255/homework-8/internal/app/services"
 )
 
 var _ Command = (*OrderCommand)(nil)

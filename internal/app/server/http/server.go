@@ -1,11 +1,12 @@
-package server
+package http_server
 
 import (
 	"context"
-	"github.com/julienschmidt/httprouter"
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/julienschmidt/httprouter"
 )
 
 type Server struct {

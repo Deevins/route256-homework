@@ -2,12 +2,13 @@
 // versions:
 // - protoc-gen-go-grpc v1.3.0
 // - protoc             v4.22.3
-// source: api/proto/server/users.proto
+// source: api/proto/users.proto
 
 package pb
 
 import (
 	context "context"
+
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -263,7 +264,7 @@ var UserServiceV1_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "api/proto/server/users.proto",
+	Metadata: "api/proto/users.proto",
 }
 
 const ()
@@ -314,5 +315,5 @@ var UserServiceV2_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*UserServiceV2Server)(nil),
 	Methods:     []grpc.MethodDesc{},
 	Streams:     []grpc.StreamDesc{},
-	Metadata:    "api/proto/server/users.proto",
+	Metadata:    "api/proto/users.proto",
 }

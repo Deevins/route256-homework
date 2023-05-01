@@ -3,6 +3,10 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
+	"net"
+	"net/http"
+
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/spf13/viper"
@@ -11,19 +15,16 @@ import (
 	"gitlab.ozon.dev/daker255/homework-8/internal/app/models"
 	"gitlab.ozon.dev/daker255/homework-8/internal/app/repository"
 	postgresqlRepository "gitlab.ozon.dev/daker255/homework-8/internal/app/repository/postgresql"
-	"gitlab.ozon.dev/daker255/homework-8/internal/app/server"
+	server "gitlab.ozon.dev/daker255/homework-8/internal/app/server/http"
 	service "gitlab.ozon.dev/daker255/homework-8/internal/app/services"
 	"gitlab.ozon.dev/daker255/homework-8/internal/metrics"
-	pb "gitlab.ozon.dev/daker255/homework-8/internal/pb/server"
+	"gitlab.ozon.dev/daker255/homework-8/internal/pb"
 	database "gitlab.ozon.dev/daker255/homework-8/pkg/database/clients"
 	jaegerExporter "go.opentelemetry.io/otel/exporters/jaeger"
 	"go.opentelemetry.io/otel/sdk/resource"
 	tracesdk "go.opentelemetry.io/otel/sdk/trace"
-	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.12.0"
 	"google.golang.org/grpc"
-	"log"
-	"net"
-	"net/http"
 )
 
 var (
@@ -68,7 +69,7 @@ func main() {
 	defer func(tracer *tracesdk.TracerProvider, ctx context.Context) {
 		err := tracer.Shutdown(ctx)
 		if err != nil {
-
+			log.Fatalf("graceful shutdown Jaeger not successful, error: %s", err)
 		}
 	}(tracer, context.Background())
 

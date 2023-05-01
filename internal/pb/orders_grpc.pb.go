@@ -2,12 +2,13 @@
 // versions:
 // - protoc-gen-go-grpc v1.3.0
 // - protoc             v4.22.3
-// source: api/proto/server/orders.proto
+// source: api/proto/orders.proto
 
 package pb
 
 import (
 	context "context"
+
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -263,7 +264,7 @@ var OrderServiceV1_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "api/proto/server/orders.proto",
+	Metadata: "api/proto/orders.proto",
 }
 
 const ()
@@ -314,5 +315,5 @@ var OrderServiceV2_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*OrderServiceV2Server)(nil),
 	Methods:     []grpc.MethodDesc{},
 	Streams:     []grpc.StreamDesc{},
-	Metadata:    "api/proto/server/orders.proto",
+	Metadata:    "api/proto/orders.proto",
 }

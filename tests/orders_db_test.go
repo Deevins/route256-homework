@@ -2,12 +2,13 @@ package tests
 
 import (
 	"context"
+	"testing"
+	"time"
+
 	"github.com/stretchr/testify/assert"
 	"gitlab.ozon.dev/daker255/homework-8/internal/app/models"
 	repository "gitlab.ozon.dev/daker255/homework-8/internal/app/repository/postgresql"
 	"gitlab.ozon.dev/daker255/homework-8/tests/fixtures"
-	"testing"
-	"time"
 )
 
 func TestCreateOrder(t *testing.T) {
@@ -261,7 +262,7 @@ func TestUpdateStatus(t *testing.T) {
 		//act
 		_, _ = userRepo.CreateUser(context.Background(), user.Username, user.Email)
 		orderID, _ := orderRepo.CreateOrder(context.Background(), user.ID, order.ProductName, order.Quantity)
-		actualOrder, err := orderRepo.GetByID(context.Background(), orderID)
+		actualOrder, _ := orderRepo.GetByID(context.Background(), orderID)
 
 		isUpdated, err := orderRepo.UpdateOrderStatus(context.Background(), actualOrder.ID, "in progress")
 
@@ -289,7 +290,7 @@ func TestUpdateStatus(t *testing.T) {
 		//act
 		_, _ = userRepo.CreateUser(context.Background(), user.Username, user.Email)
 		orderID, _ := orderRepo.CreateOrder(context.Background(), user.ID, order.ProductName, order.Quantity)
-		_, err := orderRepo.GetByID(context.Background(), orderID)
+		_, _ = orderRepo.GetByID(context.Background(), orderID)
 
 		isUpdated, err := orderRepo.UpdateOrderStatus(context.Background(), 2, "in progress")
 
