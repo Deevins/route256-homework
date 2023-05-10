@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"google.golang.org/grpc"
 
 	"gitlab.ozon.dev/daker255/homework-8/internal/app/models"
 	service "gitlab.ozon.dev/daker255/homework-8/internal/app/services"
@@ -262,6 +263,7 @@ func extractTraceIDFromRequest(ctx context.Context, traceName, spanName string) 
 		return err
 	}
 
+	grpc.UnaryInterceptor()
 	// Creating a span context with a predefined trace-id
 	spanContext := trace.NewSpanContext(trace.SpanContextConfig{
 		TraceID: traceId,
